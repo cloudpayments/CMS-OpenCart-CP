@@ -1,0 +1,34 @@
+<div class="buttons">
+    <div class="pull-right">
+        <input type="button" value="{{ button_pay }}" id="button_pay" class="btn btn-primary" />
+    </div>
+</div>
+
+<script src="https://widget.cloudpayments.ru/bundles/cloudpayments"></script>
+<script type="text/javascript">
+    var pay = function () {
+        var widget = new cp.CloudPayments({language: "{{ language }}"});
+        widget.{{ widget_pay_method }}({
+                publicId: "{{ public_id }}",
+                description: "{{ description }}",
+                amount: {{ order_total }}, //сумма
+                currency: "{{ order_currency }}",
+                invoiceId: "{{ order_invoice_id }}",
+                {% if customer_id != 0 %}
+                accountId: "{{ customer_id }}",
+                {% endif %}
+                email: "{{ order_email }}",
+                data: {{ widget_data|json_encode }}
+            },
+            function (options) { // success
+                window.location.assign("{{ success_url }}");
+            },
+            function (reason, options) { // fail
+                window.location.assign("{{ failure_url }}");
+            });
+    };
+    $(document).on('click', '#button_pay', function(e) {
+        e.preventDefault();
+        pay();
+    });
+</script>
