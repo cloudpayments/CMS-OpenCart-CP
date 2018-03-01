@@ -230,18 +230,6 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 	 */
 	private function validateRequest() {
 
-		//Check IP
-		$allow_ips = array(
-			'130.193.70.192',
-			'185.98.85.109',
-		);
-		if (!isset($this->request->server['REMOTE_ADDR']) || !in_array($this->request->server['REMOTE_ADDR'],
-				$allow_ips)
-		) {
-			$this->logNotifyError('Wrong IP');
-			return false;
-		}
-
 		//Check HMAC sign
 		$post_data    = file_get_contents('php://input');
 		$check_sign   = base64_encode(hash_hmac('SHA256', $post_data,
