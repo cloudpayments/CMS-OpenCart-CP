@@ -27,6 +27,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 	const NOTIFY_CONFIRM = 'confirm';
 	const NOTIFY_REFUND = 'refund';
 	const NOTIFY_FAIL = 'fail';
+	const NOTIFY_RECEIPT = 'receipt';
 
 	/** @var  resource */
 	private $curl;
@@ -56,8 +57,9 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			'language'          => $widget_lang,
 			'order_currency'    => $order_info['currency_code'],
 			'description'       => sprintf($this->language->get('order_description'), $order_info['order_id']),
-			'order_total'       => $order_info['total'],
+			'order_total'       => $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_info['total'],
 			'order_invoice_id'  => $order_info['order_id'],
+			'skin'              => $this->config->get('payment_cloudpayments_skin'),
 			'order_email'       => $order_info['email'],
 			'order_phone'       => $order_info['telephone'],
 			'customer_id'       => $order_info['customer_id'],
@@ -69,38 +71,53 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 				'phone' => $order_info['telephone'],
 			)
 		);
-
+        
 		if ($this->config->get('payment_cloudpayments_kkt')) {
 			$data['widget_data']['cloudPayments'] = array(
-				'customerReceipt' => $this->getReceiptData($order_info)
+				'customerReceipt' =>  $this->getReceiptData($order_info, $this->config->get('payment_cloudpayments_kassa_method'))
 			);
 		}
-
+        
 		return $this->load->view('extension/payment/cloudpayments', $data);
 	}
 
-	private function getReceiptData($order_info) {
+	private function getReceiptData($order_info, $method) {
+	    $amount_total = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
 		$receiptData = array(
-			'Items'          => array(),
-			'taxationSystem' => $this->config->get('payment_cloudpayments_taxation_system'),
-			'email'          => $order_info['email'],
-			'phone'          => $order_info['telephone']
+			'Items'            => array(),
+			'taxationSystem'   => $this->config->get('payment_cloudpayments_taxation_system'),
+			'calculationPlace' => 'www.'.$_SERVER['SERVER_NAME'],
+			'email'            => $order_info['email'],
+			'phone'            => $order_info['telephone'],
+			'amounts'          => array('electronic' => $amount_total)//$order_info['total'])
 		);
-
+        
+        if ($method == 4) {
+            $receiptData['amounts']['electronic']=0;
+            $receiptData['amounts']['advancePayment']=$amount_total;
+        }
+        
 		$order_products = $this->model_checkout_order->getOrderProducts($order_info['order_id']);
-
+        
+	    $order_amount = 0;
 		$vat = $this->config->get('payment_cloudpayments_vat');
 		foreach ($order_products as $order_product) {
+		    $amount = $this->currency->format($order_product['total'], $order_info['currency_code'], $order_info['currency_value'], false);
+		    $order_amount = $order_amount + $amount;
 			$item = array(
 				'label'    => trim($order_product['name'] . ' ' . $order_product['model']),
-				'price'    => $order_product['price'],
+				'price'    => $this->currency->format($order_product['price'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_product['price'],
 				'quantity' => $order_product['quantity'],
-				'amount'   => $order_product['total'],
+				'amount'   => $amount,//$order_product['total'],
+				'method'   => $method,
+				'object'   => $this->config->get('payment_cloudpayments_kassa_object')
 			);
 			if (!empty($vat)) {
 				$item['vat'] = $vat;
 			}
 			$receiptData['Items'][] = $item;
+			
+		
 		}
 
 		// Order Totals
@@ -110,11 +127,15 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		};
 
 		if (isset($order_totals['shipping']) && $order_totals['shipping']['value'] > 0) {
+		    $amount = $this->currency->format($order_totals['shipping']['value'], $order_info['currency_code'], $order_info['currency_value'], false);
+		    $order_amount = $order_amount + $amount;
 			$item = array(
 				'label'    => $order_totals['shipping']['title'],
-				'price'    => $order_totals['shipping']['value'],
+				'price'    => $this->currency->format($order_totals['shipping']['value'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_totals['shipping']['value'],
 				'quantity' => 1,
-				'amount'   => $order_totals['shipping']['value']
+				'amount'   => $amount,
+				'method'   => $method,
+				'object'   => 4
 			);
 
 			$vat = $this->config->get('payment_cloudpayments_vat_delivery');
@@ -123,7 +144,28 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			}
 			$receiptData['Items'][] = $item;
 		}
-
+		
+	    $discount = 0;
+        foreach ($this->model_checkout_order->getOrderTotals($order_info['order_id']) as $row) {
+			if ($row['value']<0) {
+			    $discount = $discount + $this->currency->format($row['value'], $order_info['currency_code'], $order_info['currency_value'], false);
+			};
+		};
+		$correct_amount = $amount_total-$discount-round($order_amount,2);
+		for ($i=0; $i<=count($receiptData['Items']); $i++) {
+		    if (($receiptData['Items'][$i]['amount'] + $discount)>0) {
+		        $receiptData['Items'][$i]['amount'] = round(($receiptData['Items'][$i]['amount'] + $discount + $correct_amount),2);
+		        break;
+		    }
+		    
+	    }
+	  
+	  //$receiptData['Items'][0]['amount'] = $receiptData['Items'][0]['amount']+  $discount +$abs;
+	  
+	  
+	  
+	  
+	  
 		return $receiptData;
 	}
 
@@ -160,6 +202,10 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 	 */
 	public function notifyFail() {
 		$this->processNotifyRequest(self::NOTIFY_FAIL);
+	}
+	
+	public function notifyReceipt() {
+		$this->processNotifyRequest(self::NOTIFY_RECEIPT);
 	}
 
 	/**
@@ -212,16 +258,26 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 				$transaction_status = 'Failed';
 				$new_order_status   = $this->config->get('payment_cloudpayments_order_status_fail');
 				break;
+			case self::NOTIFY_RECEIPT:
+			    $transaction_status = 'receipt';
+			    $comment = "Ссылка на чек - ".$this->request->post['Url'];
+        	    $order_id = $order['order_id'];
+        	    $order_status_id = $order['order_status_id'];
+        	    $this->db->query("UPDATE `" . DB_PREFIX . "order_history` SET `comment`='".$comment."' WHERE order_id =".$order_id." AND order_status_id =".$order_status_id);
+				break;
+				//$this->response->setOutput(json_encode(array('code' => self::PAYMENT_RESULT_SUCCESS)));
+				//exit();
 		}
-		$this->saveTransaction($order['order_id'], $transaction_status);
+		if ($transaction_status != 'receipt') {
+		    $this->saveTransaction($order['order_id'], $transaction_status);
 
-		if ($new_order_status) {
-			if ($order['order_status_id'] != $new_order_status) {
-				$this->load->model('extension/payment/cloudpayments');
-				$this->model_extension_payment_cloudpayments->addOrderHistory($order['order_id'], $new_order_status);
-			}
-		}
-
+		    if ($new_order_status) {
+		    	if ($order['order_status_id'] != $new_order_status) {
+		    		$this->load->model('extension/payment/cloudpayments');
+		    		$this->model_extension_payment_cloudpayments->addOrderHistory($order['order_id'], $new_order_status);
+		    	} 
+		    }
+		};
 		$this->response->setOutput(json_encode(array('code' => self::PAYMENT_RESULT_SUCCESS)));
 	}
 
@@ -245,7 +301,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		$required_fields = array(
 			'InvoiceId',
 			'Amount',
-			'TransactionId',
+		//	'TransactionId',
 			'DateTime'
 		);
 
@@ -277,10 +333,10 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 
 	/**
 	 * @param $order
-	 * @return bool|int
+	 * @return bool|int 
 	 */
 	private function validateOrder($order) {
-		if (floatval($order['total']) != floatval($this->request->post['Amount'])) {
+		if (floatval($this->currency->format($order['total'], $order['currency_code'], $order['currency_value'], false)) != floatval($this->request->post['Amount'])) {
 			$this->logNotifyError('Order cost invalid');
 			return self::PAYMENT_RESULT_ERROR_INVALID_COST;
 		}
@@ -353,6 +409,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 	 * @param $output
 	 */
 	public function changeOrderStatus($route, $args, $output) {
+	    
 		if (count($args) < 2) {
 			return;
 		}
@@ -382,7 +439,21 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 				$this->confirmPayment($order_id);
 			} elseif (in_array($status_id, $this->config->get('payment_cloudpayments_order_status_for_cancel'))) {
 				$this->cancelPayment($order_id);
-			}
+			} elseif ($status_id == $this->config->get('payment_cloudpayments_status_delivered')) {
+			    if ($this->config->get('payment_cloudpayments_kkt') && ( (int)$this->config->get('payment_cloudpayments_kassa_method') == 1 || (int)$this->config->get('payment_cloudpayments_kassa_method') == 2 ||
+			    (int)$this->config->get('payment_cloudpayments_kassa_method') == 3)) {
+        		    $data = array(
+  	        		    'Inn' => $this->config->get('payment_cloudpayments_inn'),
+          	    		'InvoiceId' => $order_info['order_id'],
+              			'AccountId' =>  $order_info['customer_id'],
+              			'Type' => 'Income',
+      		        	'CustomerReceipt' => $this->getReceiptData($order_info, 4)
+			        );
+			        $response = $this->makeRequest('kkt/receipt', $data);
+		        }
+			}  elseif ($status_id == $this->config->get('payment_cloudpayments_order_status_refund')) {
+		            $this->refundPayment($order_id);
+			}  
 		}
 	}
 
@@ -527,8 +598,8 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		}
 
 		$params = array(
-			'Amount'              => number_format($order_info['total'], 2, '.', ''),
-			'Currency'            => $order_info['currency_code'],
+			'Amount'              => number_format($this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false), 2, '.', ''),//number_format($order_info['total'], 2, '.', ''),
+			'Currency'            => $order_info['order_currency'],
 			'Description'         => sprintf($this->language->get('order_description'), $order_info['order_id']),
 			'Email'               => $order_info['email'],
 			'RequireConfirmation' => (bool)$this->config->get('payment_cloudpayments_two_steps'),
@@ -546,7 +617,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 
 		if ($this->config->get('payment_cloudpayments_kkt')) {
 			$params['JsonData']['cloudPayments'] = array(
-				'customerReceipt' => $this->getReceiptData($order_info)
+				'customerReceipt' => $this->getReceiptData($order_info, $this->config->get('payment_cloudpayments_kassa_method'))
 			);
 		}
 		$response = $this->makeRequest('orders/create', $params);
@@ -561,6 +632,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 	 */
 	private function makeRequest($location, $request = array()) {
 		if (!$this->curl) {
+            $reque=time().json_encode($request);
 			$auth       = $this->config->get('payment_cloudpayments_public_id') . ':' . $this->config->get('payment_cloudpayments_secret_key');
 			$this->curl = curl_init();
 			curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
@@ -573,7 +645,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 
 		curl_setopt($this->curl, CURLOPT_URL, 'https://api.cloudpayments.ru/' . $location);
 		curl_setopt($this->curl, CURLOPT_HTTPHEADER, array(
-			"content-type: application/json"
+			"content-type: application/json", "X-Request-ID:".$reque
 		));
 		curl_setopt($this->curl, CURLOPT_POST, true);
 		curl_setopt($this->curl, CURLOPT_POSTFIELDS, json_encode($request));

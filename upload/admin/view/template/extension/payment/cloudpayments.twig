@@ -85,7 +85,37 @@
                                         </select>
                                     </div>
                                 </div>
-
+                                
+                                <!--skin-->
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-skin">
+                                        <span data-toggle="tooltip" title="{{ help_skin }}">{{ entry_skin }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <select name="payment_cloudpayments_skin" id="entry-skin"
+                                                class="form-control">
+                                            {% for i,v in skin_values %}
+                                                <option value="{{ i }}" {% if payment_cloudpayments_skin == i and payment_cloudpayments_skin|length %}selected{% endif %}>{{ v }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!--currency
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-currency">
+                                        <span data-toggle="tooltip" title="{{ help_currency }}">{{ entry_currency }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <select name="payment_cloudpayments_currency" id="entry-currency"
+                                                class="form-control">
+                                            {% for i,v in currency_values %}
+                                                <option value="{{ i }}" {% if payment_cloudpayments_currency == i and payment_cloudpayments_currency|length %}selected{% endif %}>{{ v }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>-->
+                                
                                 <!--Standard options -->
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label" for="entry-geo-zone">{{ entry_geo_zone }}</label>
@@ -202,7 +232,44 @@
                                         </select>
                                     </div>
                                 </div>
-
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-kassa_method">
+                                        <span data-toggle="tooltip" title="{{ help_kassa_method }}">{{ entry_kassa_method }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <select name="payment_cloudpayments_kassa_method" id="entry-kassa_method"
+                                                class="form-control">
+                                            {% for i,v in kassa_method %}
+                                                <option value="{{ i }}" {% if payment_cloudpayments_kassa_method == i and payment_cloudpayments_kassa_method|length %}selected{% endif %}>{{ v }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-kassa_object">
+                                        <span data-toggle="tooltip" title="{{ help_kassa_object }}">{{ entry_kassa_object }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <select name="payment_cloudpayments_kassa_object" id="entry-kassa_object"
+                                                class="form-control">
+                                            {% for i,v in kassa_object %}
+                                                <option value="{{ i }}" {% if payment_cloudpayments_kassa_object == i and payment_cloudpayments_kassa_object|length %}selected{% endif %}>{{ v }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-inn">
+                                        <span data-toggle="tooltip" title="{{ help_inn }}">{{ entry_inn }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <input type="text" name="payment_cloudpayments_inn"
+                                               value="{{ payment_cloudpayments_inn }}"
+                                               placeholder="{{ entry_inn }}"
+                                               id="entry-inn" class="form-control"/>
+                                    </div>
+                                </div>
+                                
                             </fieldset>
                         </div>
                         <div class="tab-pane" id="tab-order_status">
@@ -273,7 +340,20 @@
                                     </select>
                                 </div>
                             </div>
-
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="entry-status_delivered">
+                                    <span data-toggle="tooltip" title="{{ help_status_delivered }}">{{ entry_status_delivered }}</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <select name="payment_cloudpayments_status_delivered" id="entry-status_delivered"
+                                            class="form-control">
+                                        {% for status in order_statuses %}
+                                            <option value="{{ status.order_status_id }}" {% if payment_cloudpayments_status_delivered == status.order_status_id %}selected{% endif %}>{{ status.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
                             <div class="form-group">
                                 <label class="col-sm-2 control-label" for="entry-order_status_for_confirm">
                                     <span data-toggle="tooltip" title="{{ help_order_status_for_confirm }}">{{ entry_order_status_for_confirm }}</span>

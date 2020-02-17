@@ -4,7 +4,7 @@
     </div>
 </div>
 
-<script src="https://widget.cloudpayments.ru/bundles/cloudpayments"></script>
+<script src="https://widget.cloudpayments.ru/bundles/cloudpayments?cms=OpenCart"></script>
 <script type="text/javascript">
     var pay = function () {
         var widget = new cp.CloudPayments({language: "{{ language }}"});
@@ -14,6 +14,7 @@
                 amount: {{ order_total }}, //сумма
                 currency: "{{ order_currency }}",
                 invoiceId: "{{ order_invoice_id }}",
+                skin: "{{ skin }}",
                 {% if customer_id != 0 %}
                 accountId: "{{ customer_id }}",
                 {% endif %}

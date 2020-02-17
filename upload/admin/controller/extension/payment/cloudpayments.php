@@ -84,6 +84,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			'payment_cloudpayments_currency',
 			'payment_cloudpayments_language',
 			'payment_cloudpayments_two_steps',
+			'payment_cloudpayments_skin',
 			'payment_cloudpayments_kkt',
 			'payment_cloudpayments_taxation_system',
 			'payment_cloudpayments_vat',
@@ -95,7 +96,11 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			'payment_cloudpayments_order_status_fail',
 			'payment_cloudpayments_order_status_for_confirm',
 			'payment_cloudpayments_order_status_for_cancel',
-			'payment_cloudpayments_order_status_for_send_order_link'
+			'payment_cloudpayments_order_status_for_send_order_link',
+			'payment_cloudpayments_kassa_method',
+            'payment_cloudpayments_kassa_object',
+            'payment_cloudpayments_status_delivered',
+            'payment_cloudpayments_inn'
 		);
 
 		foreach ($fields as $f) {
@@ -121,8 +126,28 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			$data['taxation_systems'][$i] = $this->language->get('text_taxation_system_' . $i);
 		}
 
+        $data['skin_values'] = array();
+		foreach (array('classic', 'modern', 'mini') as $skin) {
+			$data['skin_values'][$skin] = $this->language->get('text_skin_' . $skin);
+		}
+		
+		$data['kassa_method_values'] = array();
+		foreach (array('0', '1', '2', '3', '4', '5', '6', '7') as $kassa_method) {
+			$data['kassa_method'][$kassa_method] = $this->language->get('text_kassa_method_' . $kassa_method);
+		}
+		
+		$data['kassa_object_values'] = array();
+		foreach (array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13') as $kassa_object) {
+			$data['kassa_object'][$kassa_object] = $this->language->get('text_kassa_object_' . $kassa_object);
+		}
+		
+		//$data['currency_values'] = array();
+		//foreach (array('RUB', 'EUR', 'USD', 'GBP', 'UAH', 'BYN', 'KZT', 'AZN', 'CHF', 'CZK', 'CAD', 'PLN', 'SEK', 'TRY', 'CNY', 'INR', 'BRL', 'ZAR', 'UZS', 'GEL','BGL') as $currency) {
+		//	$data['currency_values'][$currency] = $this->language->get('text_currency_' . $currency);
+		//}
+
 		$data['vat_values'] = array();
-		foreach (array('18', '10', '0', '110', '118') as $vat) {
+		foreach (array('20', '10', '0', '110', '120') as $vat) {
 			$data['vat_values'][$vat] = $this->language->get('text_vat_' . $vat);
 		}
 //		$data['text_vat_none'] = $this->language->get('text_vat_none');
@@ -130,7 +155,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		$data['notify_urls'] = array();
 
 		$url = new Url(HTTP_CATALOG, $this->config->get('config_secure') ? HTTP_CATALOG : HTTPS_CATALOG);
-		foreach (array('check', 'pay', 'fail', 'confirm', 'refund') as $type) {
+		foreach (array('check', 'pay', 'fail', 'confirm', 'refund', 'receipt') as $type) {
 			$data['notify_urls'][$type] = array(
 				'label' => $this->language->get('entry_notify_url_' . $type),
 				'url'   => $url->link('extension/payment/cloudpayments/notify-' . $type)

@@ -40,7 +40,6 @@ class ModelExtensionPaymentCloudPayments extends Model {
 			'USD',
 			'GBP',
 			'UAH',
-			'BYR',
 			'BYN',
 			'KZT',
 			'AZN',
@@ -55,6 +54,8 @@ class ModelExtensionPaymentCloudPayments extends Model {
 			'BRL',
 			'ZAL',
 			'UZS',
+			'BGL',
+			'GEL',
 		);
 
 		if (!in_array(strtoupper($this->session->data['currency']), $currencies)) {
@@ -139,5 +140,4 @@ class ModelExtensionPaymentCloudPayments extends Model {
 			);
 		}
 	}
-
 }
