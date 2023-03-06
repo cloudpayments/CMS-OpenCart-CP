@@ -59,6 +59,9 @@ $_['text_currency_UZS'] = 'Uzbek sum';
 $_['text_currency_BGL'] = 'Bulgarian lev';
 $_['text_currency_GEL'] = 'Georgian lari';
 
+$_['text_country_0'] = 'Russia';
+$_['text_country_1'] = 'Uzbekistan';
+
 $_['text_taxation_system_0'] = 'General taxation system';
 $_['text_taxation_system_1'] = 'Simplified taxation system (Income)';
 $_['text_taxation_system_2'] = 'Simplified taxation system (Income minus Expenditure)';
@@ -68,6 +71,7 @@ $_['text_taxation_system_5'] = 'Patent system of taxation';
 
 $_['text_vat_none'] = 'No Vat';
 $_['text_vat_20'] = 'Vat 20%';
+$_['text_vat_12'] = 'Vat 12% (for Uzbekistan)';
 $_['text_vat_10'] = 'Vat 10%';
 $_['text_vat_0'] = 'Vat 0%';
 $_['text_vat_110'] = 'Calculated vat 10/110';
@@ -85,8 +89,9 @@ $_['entry_status_delivered'] = 'Delivery status';
 $_['entry_inn'] = 'Inn';
 $_['entry_currency'] = 'Currency List';
 
+$_['entry_country'] = 'Country';
 $_['entry_kkt'] = 'Generate online receipt';
-$_['entry_taxation_system'] = 'Taxation_system';
+$_['entry_taxation_system'] = 'Taxation system';
 $_['entry_vat'] = 'Vat';
 $_['entry_vat_delivery'] = 'Vat for delivery';
 
@@ -132,6 +137,7 @@ $_['help_two_steps'] = 'Payment will occur in 2 steps: authorization and confirm
 $_['help_skin'] = 'Choosing a widget design. More details in documentation CloudPayments';
 $_['help_currency'] = 'Choosing a currency. More details in documentation CloudPayments';
 
+$_['help_country'] = 'Country';
 $_['help_kkt'] = 'Automatically generate online check when pay';
 $_['help_taxation_system'] = 'More details in documentation CloudPayments';
 $_['help_vat'] = 'Vat for products in the order. More details in documentation CloudPayments';
