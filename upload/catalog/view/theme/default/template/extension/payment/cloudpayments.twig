@@ -4,7 +4,11 @@
     </div>
 </div>
 
+{% if country == 1 %}
+<script src="https://widget.cloudpayments.uz/bundles/cloudpayments?cms=OpenCart"></script>
+{% else %}
 <script src="https://widget.cloudpayments.ru/bundles/cloudpayments?cms=OpenCart"></script>
+{% endif %}
 <script type="text/javascript">
     var pay = function () {
         var widget = new cp.CloudPayments({language: "{{ language }}"});

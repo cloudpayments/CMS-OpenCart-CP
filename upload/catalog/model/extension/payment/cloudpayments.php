@@ -140,4 +140,40 @@ class ModelExtensionPaymentCloudPayments extends Model {
 			);
 		}
 	}
+
+	/**
+	 * @param $product_id
+	 * @return text
+	 */
+	public function getSpic($product_id) {
+		$query = $this->db->query("SELECT text FROM " . DB_PREFIX . "attribute_description
+			JOIN " . DB_PREFIX . "product_attribute
+			ON " . DB_PREFIX . "attribute_description.attribute_id = " . DB_PREFIX . "product_attribute.attribute_id
+			WHERE product_id = " . $product_id . " AND name = 'ИКПУ'
+		");
+
+		if ($query->num_rows != 1) {
+			return '';
+		} else {
+			return $query->row['text'];
+		}
+	}
+
+	/**
+	 * @param $product_id
+	 * @return text
+	 */
+	public function getPackageCode($product_id) {
+		$query = $this->db->query("SELECT text FROM " . DB_PREFIX . "attribute_description
+			JOIN " . DB_PREFIX . "product_attribute
+			ON " . DB_PREFIX . "attribute_description.attribute_id = " . DB_PREFIX . "product_attribute.attribute_id
+			WHERE product_id = " . $product_id . " AND name = 'Код упаковки'
+		");
+
+		if ($query->num_rows != 1) {
+			return '';
+		} else {
+			return $query->row['text'];
+		}
+	}
 }

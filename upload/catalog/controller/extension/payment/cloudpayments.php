@@ -52,6 +52,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		}
 
 		$data = array(
+			'country'			=> $this->language->get('payment_cloudpayments_country'),
 			'button_pay'        => $this->language->get('button_pay'),
 			'public_id'         => $this->config->get('payment_cloudpayments_public_id'),
 			'language'          => $widget_lang,
@@ -74,23 +75,36 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
         
 		if ($this->config->get('payment_cloudpayments_kkt')) {
 			$data['widget_data']['cloudPayments'] = array(
-				'customerReceipt' =>  $this->getReceiptData($order_info, $this->config->get('payment_cloudpayments_kassa_method'))
+				'customerReceipt' =>  $this->getReceiptData($order_info, $this->config->get('payment_cloudpayments_kassa_method'), $this->config->get('payment_cloudpayments_country'))
 			);
 		}
         
 		return $this->load->view('extension/payment/cloudpayments', $data);
 	}
 
-	private function getReceiptData($order_info, $method) {
+	private function getReceiptData($order_info, $method, $country = 0 /* Russia by default */) {
 	    $amount_total = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
-		$receiptData = array(
-			'Items'            => array(),
-			'taxationSystem'   => $this->config->get('payment_cloudpayments_taxation_system'),
-			'calculationPlace' => 'www.'.$_SERVER['SERVER_NAME'],
-			'email'            => $order_info['email'],
-			'phone'            => $order_info['telephone'],
-			'amounts'          => array('electronic' => $amount_total)//$order_info['total'])
-		);
+		
+		$receiptData;
+		if ($country == 0) { // Russia
+			$receiptData = array(
+				'Items'            => array(),
+				'taxationSystem'   => $this->config->get('payment_cloudpayments_taxation_system'),
+				'calculationPlace' => 'www.'.$_SERVER['SERVER_NAME'],
+				'email'            => $order_info['email'],
+				'phone'            => $order_info['telephone'],
+				'amounts'          => array('electronic' => $amount_total)//$order_info['total'])
+			);
+		} elseif ($country == 1) { // Uzbekistan
+			$receiptData = array(
+				'Items'            => array(),
+				'email'            => $order_info['email'],
+				'phone'            => $order_info['telephone'],
+				'amounts'          => array('electronic' => $amount_total)//$order_info['total'])
+			);
+
+			$this->load->model('extension/payment/cloudpayments');
+		}
         
         if ($method == 4) {
             $receiptData['amounts']['electronic']=0;
@@ -104,14 +118,30 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		foreach ($order_products as $order_product) {
 		    $amount = $this->currency->format($order_product['total'], $order_info['currency_code'], $order_info['currency_value'], false);
 		    $order_amount = $order_amount + $amount;
-			$item = array(
-				'label'    => trim($order_product['name'] . ' ' . $order_product['model']),
-				'price'    => $this->currency->format($order_product['price'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_product['price'],
-				'quantity' => $order_product['quantity'],
-				'amount'   => $amount,//$order_product['total'],
-				'method'   => $method,
-				'object'   => $this->config->get('payment_cloudpayments_kassa_object')
-			);
+
+			if ($country == 0) { // Russia
+				$item = array(
+					'label'    => trim($order_product['name'] . ' ' . $order_product['model']),
+					'price'    => $this->currency->format($order_product['price'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_product['price'],
+					'quantity' => $order_product['quantity'],
+					'amount'   => $amount,//$order_product['total'],
+					'method'   => $method,
+					'object'   => $this->config->get('payment_cloudpayments_kassa_object')
+				);
+			} elseif ($country == 1) { // Uzbekistan
+				$spic = $this->model_extension_payment_cloudpayments->getSpic($order_product['product_id']);
+				$packageCode = $this->model_extension_payment_cloudpayments->getPackageCode($order_product['product_id']);				
+
+				$item = array(
+					'label'    		=> trim($order_product['name'] . ' ' . $order_product['model']),
+					'price'    		=> $this->currency->format($order_product['price'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_product['price'],
+					'quantity' 		=> $order_product['quantity'],
+					'amount'   		=> $amount,//$order_product['total'],
+					'spic'   		=> $spic,
+					'packageCode'   => $packageCode
+				);
+			}
+
 			if (!empty($vat)) {
 				$item['vat'] = $vat;
 			}
@@ -129,14 +159,26 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		if (isset($order_totals['shipping']) && $order_totals['shipping']['value'] > 0) {
 		    $amount = $this->currency->format($order_totals['shipping']['value'], $order_info['currency_code'], $order_info['currency_value'], false);
 		    $order_amount = $order_amount + $amount;
-			$item = array(
-				'label'    => $order_totals['shipping']['title'],
-				'price'    => $this->currency->format($order_totals['shipping']['value'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_totals['shipping']['value'],
-				'quantity' => 1,
-				'amount'   => $amount,
-				'method'   => $method,
-				'object'   => 4
-			);
+
+			if ($country == 0) { // Russia
+				$item = array(
+					'label'    => $order_totals['shipping']['title'],
+					'price'    => $this->currency->format($order_totals['shipping']['value'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_totals['shipping']['value'],
+					'quantity' => 1,
+					'amount'   => $amount,
+					'method'   => $method,
+					'object'   => 4
+				);
+			} elseif ($country == 1) { // Uzbekistan
+				$item = array(
+					'label'    => $order_totals['shipping']['title'],
+					'price'    => $this->currency->format($order_totals['shipping']['value'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_totals['shipping']['value'],
+					'quantity' => 1,
+					'amount'   => $amount,
+					'spic'   => "10112006002000000", // source: https://tasnif.soliq.uz/attribute/10112006002000000
+					'packageCode'   => "1209779" // source: https://tasnif.soliq.uz/attribute/10112006002000000
+				);
+			}
 
 			$vat = $this->config->get('payment_cloudpayments_vat_delivery');
 			if (!empty($vat)) {
@@ -164,7 +206,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 	  
 	  
 	  
-	  
+
 	  
 		return $receiptData;
 	}
@@ -617,7 +659,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 
 		if ($this->config->get('payment_cloudpayments_kkt')) {
 			$params['JsonData']['cloudPayments'] = array(
-				'customerReceipt' => $this->getReceiptData($order_info, $this->config->get('payment_cloudpayments_kassa_method'))
+				'customerReceipt' => $this->getReceiptData($order_info, $this->config->get('payment_cloudpayments_kassa_method'), $this->config->get('payment_cloudpayments_country'))
 			);
 		}
 		$response = $this->makeRequest('orders/create', $params);

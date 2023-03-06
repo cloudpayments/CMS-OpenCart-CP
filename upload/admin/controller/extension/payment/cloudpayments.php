@@ -85,6 +85,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			'payment_cloudpayments_language',
 			'payment_cloudpayments_two_steps',
 			'payment_cloudpayments_skin',
+			'payment_cloudpayments_country',
 			'payment_cloudpayments_kkt',
 			'payment_cloudpayments_taxation_system',
 			'payment_cloudpayments_vat',
@@ -121,6 +122,11 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		$this->load->model('localisation/geo_zone');
 		$data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
 
+		$data['country'] = array();
+		for ($i = 0; $i <= 1; $i++) {
+			$data['country'][$i] = $this->language->get('text_country_' . $i);
+		}
+
 		$data['taxation_systems'] = array();
 		for ($i = 0; $i <= 5; $i++) {
 			$data['taxation_systems'][$i] = $this->language->get('text_taxation_system_' . $i);
@@ -147,7 +153,7 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		//}
 
 		$data['vat_values'] = array();
-		foreach (array('20', '10', '0', '110', '120') as $vat) {
+		foreach (array('20', '12', '10', '0', '110', '120') as $vat) {
 			$data['vat_values'][$vat] = $this->language->get('text_vat_' . $vat);
 		}
 //		$data['text_vat_none'] = $this->language->get('text_vat_none');
