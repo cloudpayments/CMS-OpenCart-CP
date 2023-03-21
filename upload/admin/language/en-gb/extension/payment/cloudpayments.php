@@ -59,6 +59,10 @@ $_['text_currency_UZS'] = 'Uzbek sum';
 $_['text_currency_BGL'] = 'Bulgarian lev';
 $_['text_currency_GEL'] = 'Georgian lari';
 
+$_['text_language_ru-RU'] = 'Russian';
+$_['text_language_en-US'] = 'English';
+$_['text_language_uz'] = 'Uzbeks';
+
 $_['text_taxation_system_0'] = 'General taxation system';
 $_['text_taxation_system_1'] = 'Simplified taxation system (Income)';
 $_['text_taxation_system_2'] = 'Simplified taxation system (Income minus Expenditure)';
@@ -79,10 +83,13 @@ $_['entry_secret_key'] = 'Secret key';
 
 $_['entry_two_steps'] = 'Two-steps payments (DMS)';
 $_['entry_skin'] = 'Widget design';
+$_['entry_language'] = 'Widget language';
 $_['entry_kassa_method'] = 'Calculation method';
 $_['entry_kassa_object'] = 'Calculation object';
 $_['entry_status_delivered'] = 'Delivery status';
 $_['entry_inn'] = 'Inn';
+$_['entry_shipping_spic'] = 'Shipping code IKPU';
+$_['entry_shipping_package_code'] = 'Shipping package code';
 $_['entry_currency'] = 'Currency List';
 
 $_['entry_kkt'] = 'Generate online receipt';
@@ -130,6 +137,7 @@ $_['help_public_id'] = 'This parameter you can get in CloudPayments (Public ID)'
 $_['help_secret_key'] = 'This parameter you can get in CloudPayments (Password for API)';
 $_['help_two_steps'] = 'Payment will occur in 2 steps: authorization and confirmation';
 $_['help_skin'] = 'Choosing a widget design. More details in documentation CloudPayments';
+$_['help_language'] = 'Choosing a widget language. More details in documentation CloudPayments';
 $_['help_currency'] = 'Choosing a currency. More details in documentation CloudPayments';
 
 $_['help_kkt'] = 'Automatically generate online check when pay';
@@ -139,6 +147,8 @@ $_['help_vat_delivery'] = 'Vat for delivery. More details in documentation Cloud
 $_['help_kassa_method'] = 'Calculation method. More details in documentation CloudPayments';
 $_['help_kassa_object'] = 'Calculation object. More details in documentation CloudPayments';
 $_['help_inn'] = 'Inn organization';
+$_['help_shipping_spic'] = 'Shipping code IKPU';
+$_['help_shipping_package_code'] = 'Shipping package code';
 
 $_['help_order_status_pay'] = 'Order get changed its status on chosen once receive pay notification';
 $_['help_order_status_auth'] = 'Order get changed its status on chosen once receive auth notification (two-steps payments)';

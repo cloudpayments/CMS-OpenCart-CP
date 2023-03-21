@@ -115,6 +115,21 @@
                                         </select>
                                     </div>
                                 </div>-->
+
+                                <!--language-->
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-language">
+                                        <span data-toggle="tooltip" title="{{ help_language }}">{{ entry_language }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <select name="payment_cloudpayments_language" id="entry-language"
+                                                class="form-control">
+                                            {% for i,v in language_values %}
+                                                <option value="{{ i }}" {% if payment_cloudpayments_language == i and payment_cloudpayments_language|length %}selected{% endif %}>{{ v }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
                                 
                                 <!--Standard options -->
                                 <div class="form-group">
@@ -267,6 +282,30 @@
                                                value="{{ payment_cloudpayments_inn }}"
                                                placeholder="{{ entry_inn }}"
                                                id="entry-inn" class="form-control"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-shipping_spic">
+                                        <span data-toggle="tooltip" title="{{ help_shipping_spic }}">{{ entry_shipping_spic }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <input type="text" name="payment_cloudpayments_shipping_spic"
+                                               value="{{ payment_cloudpayments_shipping_spic }}"
+                                               placeholder="{{ entry_shipping_spic }}"
+                                               id="entry-shipping_spic" class="form-control"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="entry-shipping_package_code">
+                                        <span data-toggle="tooltip" title="{{ help_shipping_package_code }}">{{ entry_shipping_package_code }}</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <input type="text" name="payment_cloudpayments_shipping_package_code"
+                                               value="{{ payment_cloudpayments_shipping_package_code }}"
+                                               placeholder="{{ entry_shipping_package_code }}"
+                                               id="entry-shipping_package_code" class="form-control"/>
                                     </div>
                                 </div>
                                 

@@ -42,19 +42,10 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
-		$lang_code = $this->language->get('code');
-		switch ($lang_code) {
-			case 'ru':
-				$widget_lang = 'ru-RU';
-				break;
-			default:
-				$widget_lang = 'en-US';
-		}
-
 		$data = array(
 			'button_pay'        => $this->language->get('button_pay'),
 			'public_id'         => $this->config->get('payment_cloudpayments_public_id'),
-			'language'          => $widget_lang,
+			'language'          => $this->config->get('payment_cloudpayments_language'),
 			'order_currency'    => $order_info['currency_code'],
 			'description'       => sprintf($this->language->get('order_description'), $order_info['order_id']),
 			'order_total'       => $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false),//$order_info['total'],
@@ -115,6 +106,36 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			if (!empty($vat)) {
 				$item['vat'] = $vat;
 			}
+
+            $AdditionalReceiptInfos = ["Вы стали обладателем права на 1% cashback"]; // Это статичное значение
+
+            $attribute_groups = $this->model_catalog_product->getProductAttributes($order_product['product_id']);
+
+            $attributes = array_filter($attribute_groups, function ($attribute_group) {
+                return count(
+                    array_filter($attribute_group['attribute'], function ($attribute) {
+                        return $attribute['name'] === 'Package Code' || $attribute['name'] === 'Code IKPU';
+                    })
+                );
+            });
+
+            if (count($attributes)) {
+                $attribute = array_shift($attributes)['attribute'];
+
+                $spic = array_filter($attribute, function ($attr) {return $attr['name'] === 'Code IKPU';});
+
+                $packageCode = array_filter($attribute, function ($attr) {return $attr['name'] === 'Package Code';});
+
+                if (count($spic) && count($packageCode)) {
+                    $item['spic'] = array_shift($spic)['text'];
+                    $item['packageCode'] = array_shift($packageCode)['text'];
+
+                    if (!key_exists('AdditionalReceiptInfos', $receiptData)) {
+                        $receiptData['AdditionalReceiptInfos'] = $AdditionalReceiptInfos;
+                    }
+                }
+            }
+
 			$receiptData['Items'][] = $item;
 			
 		
@@ -142,6 +163,15 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			if (!empty($vat)) {
 				$item['vat'] = $vat;
 			}
+
+            $ship_spic = $this->config->get('payment_cloudpayments_shipping_spic');
+            $ship_package = $this->config->get('payment_cloudpayments_shipping_package_code');
+
+            if ($ship_spic && $ship_package) {
+                $item['spic'] = $ship_spic;
+                $item['packageCode'] = $ship_package;
+            }
+
 			$receiptData['Items'][] = $item;
 		}
 		

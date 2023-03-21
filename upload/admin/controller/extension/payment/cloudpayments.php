@@ -100,7 +100,9 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 			'payment_cloudpayments_kassa_method',
             'payment_cloudpayments_kassa_object',
             'payment_cloudpayments_status_delivered',
-            'payment_cloudpayments_inn'
+            'payment_cloudpayments_inn',
+            'payment_cloudpayments_shipping_spic',
+            'payment_cloudpayments_shipping_package_code',
 		);
 
 		foreach ($fields as $f) {
@@ -145,6 +147,11 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 		//foreach (array('RUB', 'EUR', 'USD', 'GBP', 'UAH', 'BYN', 'KZT', 'AZN', 'CHF', 'CZK', 'CAD', 'PLN', 'SEK', 'TRY', 'CNY', 'INR', 'BRL', 'ZAR', 'UZS', 'GEL','BGL') as $currency) {
 		//	$data['currency_values'][$currency] = $this->language->get('text_currency_' . $currency);
 		//}
+
+        $data['language_values'] = array();
+        foreach (array('ru-RU', 'en-US', 'uz') as $language) {
+            $data['language_values'][$language] = $this->language->get('text_language_' . $language);
+        }
 
 		$data['vat_values'] = array();
 		foreach (array('20', '10', '0', '110', '120') as $vat) {
