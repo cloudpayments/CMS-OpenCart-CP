@@ -40,6 +40,8 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 
 		$this->load->model('checkout/order');
 
+		$this->load->model('catalog/product');
+
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
 		$data = array(
@@ -107,34 +109,14 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 				$item['vat'] = $vat;
 			}
 
-            $AdditionalReceiptInfos = ["Вы стали обладателем права на 1% cashback"]; // Это статичное значение
+      $attribute_groups = $this->model_catalog_product->getProductAttributes($order_product['product_id']);
 
-            $attribute_groups = $this->model_catalog_product->getProductAttributes($order_product['product_id']);
-
-            $attributes = array_filter($attribute_groups, function ($attribute_group) {
-                return count(
-                    array_filter($attribute_group['attribute'], function ($attribute) {
-                        return $attribute['name'] === 'Package Code' || $attribute['name'] === 'Code IKPU';
-                    })
-                );
-            });
-
-            if (count($attributes)) {
-                $attribute = array_shift($attributes)['attribute'];
-
-                $spic = array_filter($attribute, function ($attr) {return $attr['name'] === 'Code IKPU';});
-
-                $packageCode = array_filter($attribute, function ($attr) {return $attr['name'] === 'Package Code';});
-
-                if (count($spic) && count($packageCode)) {
-                    $item['spic'] = array_shift($spic)['text'];
-                    $item['packageCode'] = array_shift($packageCode)['text'];
-
-                    if (!key_exists('AdditionalReceiptInfos', $receiptData)) {
-                        $receiptData['AdditionalReceiptInfos'] = $AdditionalReceiptInfos;
-                    }
-                }
-            }
+      foreach ($attribute_groups as $attribute_group) {
+        foreach ($attribute_group['attribute'] as $attribute) {
+          if ($attribute['name'] === 'Code IKPU') $item['spic'] = $attribute['text'];
+          if ($attribute['name'] === 'Package Code') $item['packageCode'] = $attribute['text'];
+        }
+      }
 
 			$receiptData['Items'][] = $item;
 			
@@ -164,13 +146,14 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 				$item['vat'] = $vat;
 			}
 
-            $ship_spic = $this->config->get('payment_cloudpayments_shipping_spic');
-            $ship_package = $this->config->get('payment_cloudpayments_shipping_package_code');
+      $ship_spic = $this->config->get('payment_cloudpayments_shipping_spic');
+      $ship_package = $this->config->get('payment_cloudpayments_shipping_package_code');
 
-            if ($ship_spic && $ship_package) {
-                $item['spic'] = $ship_spic;
-                $item['packageCode'] = $ship_package;
-            }
+      if (!empty($ship_spic) && !empty($ship_package)) {
+        $item['spic'] = $ship_spic;
+        $item['packageCode'] = $ship_package;
+        $receiptData['AdditionalReceiptInfos'] = ["Вы стали обладателем права на 1% cashback"]; // Это статичное значение
+      }
 
 			$receiptData['Items'][] = $item;
 		}
