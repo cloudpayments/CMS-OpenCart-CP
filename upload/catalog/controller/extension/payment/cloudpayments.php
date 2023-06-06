@@ -64,6 +64,15 @@ class ControllerExtensionPaymentCloudPayments extends Controller {
 				'phone' => $order_info['telephone'],
 			)
 		);
+
+		$ch = curl_init('https://api.cloudpayments.ru/merchant/configuration/'.$data["public_id"]);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		$client = json_decode(curl_exec($ch));
+		curl_close($ch);
+
+		$data['widget_url'] = $client->Model->WidgetUrl ?? 'https://widget.cloudpayments.ru/';
         
 		if ($this->config->get('payment_cloudpayments_kkt')) {
 			$data['widget_data']['cloudPayments'] = array(
